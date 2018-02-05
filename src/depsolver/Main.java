@@ -52,29 +52,46 @@ public class Main {
     ArrayList<String> commands = new ArrayList<String>();
     ArrayList<String> posError= new ArrayList<String>();
     ArrayList<String> blacklist= new ArrayList<String>();
+    ArrayList<String> conflicts= new ArrayList<String>();
     int j = 0;
     while ( j < constraints.size()) {
-    	String p = constraints.get(j).substring(1);
-    	boolean result = install(p, commands, posError, repo, initial, blacklist);
-    	j++;
+    	
+    	String p = constraints.get(j);
+    	if (p.substring(0,1).equals("+")) {
+    		
+    	
+    	boolean result = install(p.substring(1), commands, posError, repo, initial, blacklist,conflicts);
+    	if (result == false) {
+    		blacklist.add(posError.get(posError.size()-1));
+    		posError.remove(posError.size()-1);
+
+    		posError = new ArrayList<String>();
+			commands = new ArrayList<String>();
+			conflicts = new ArrayList<String>();
+    		j = 0;
+    	} else {	
+    		j++;
+    	}
     }
-    
-    
+    	
+    }
+    	System.out.println(commands.toString());
+ 
     
     
     
   }
   
   
-  public static boolean install(String p, List<String> commands, List<String> posError, List<Package> repo, List<String> initial, List<String> blacklist) {
+  public static boolean install(String p, ArrayList<String> commands, ArrayList<String> posError, List<Package> repo, List<String> initial, ArrayList<String> blacklist, ArrayList<String> conflicts) {
 	  String v = "";
 	  String type = "";
 	  if (p.contains(">=")) {
-		   v = p.substring(p.indexOf(">=")+1);
+		   v = p.substring(p.indexOf(">=")+2);
 		   type = ">=";
 		   p = p.substring(0, p.indexOf(">=") );
 	  } else if (p.contains("<=")) {
-		   v = p.substring(p.indexOf("<=")+1);
+		   v = p.substring(p.indexOf("<=")+2);
 		   type = "<=";
 		   p = p.substring(0, p.indexOf("<=") );
 	  } else if (p.contains("=")) {
@@ -91,46 +108,357 @@ public class Main {
 	  	}
 		int i = 0;
 		int end = 0;
-		while (i < repo.size() && end != 3) {
+		while (i < repo.size() && end < 3) {
 			Package thePackage = repo.get(i);
 			if (thePackage.getName().equals(p)){
-				if (type == "=" ){
-					if (v == thePackage.getVersion()) {
-						if (install(thePackage.getName(), commands, posError, repo, initial, blacklist) == true) {
-							commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
-							return true;
-						} else {
-							return false;
-						}
-					}
-				} else if(type == ">=") {
-					if (Integer.parseInt(v) >= Integer.parseInt(thePackage.getVersion()) ) {
-						if (install(thePackage.getName(), commands, posError, repo, initial, blacklist) == true) {
-							if (end == 0) {
-								commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
-								end = 1;
-							} else {
-								posError.add("+" + repo.get(i).getName() + "=" + repo.get(i).getVersion());
-								end = 2;
+				if (doesConflict(p,type, v, blacklist, conflicts) /* or conflicts*/) {
+					end = 4;
+				} else {
+					if (type == "=" ){
+						if (v == thePackage.getVersion()) {
+							List<List<String>> dependencies = thePackage.getDepends();
+							conflicts.addAll(thePackage.getConflicts());
+							boolean noErrors = true;
+							for (List<String> s : dependencies) {
+								if (s.size() > 1) {
+									
+									for(int looper = 0; looper < s.size();looper++) {
+										
+
+										if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+											posError.add(s.get(looper));
+											end = 1;
+											break;
+										}else {
+											end = 2;
+										}
+									}
+								} else {
+									if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+										noErrors = true;									
+									}
+								}
 							}
+								if (noErrors == true) {
+									commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+									return true;
+								} else {
+									return false;
+								}
+							
 						}
-					}
-				} else if (type == "<=") {
 					
-				} else if (type == "any") {
-					
+					} else if(type == ">=") {
+						if (Float.parseFloat(thePackage.getVersion()) >= Float.parseFloat(v) )  {
+							
+								if (end == 0) {
+									List<List<String>> dependencies = thePackage.getDepends();
+									conflicts.addAll(thePackage.getConflicts());
+									boolean noErrors = true;
+									for (List<String> s : dependencies) {
+										if (s.size() > 1) {
+											
+											for(int looper = 0; looper < s.size();looper++) {
+												
+												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+													posError.add(s.get(looper));
+													end = 1;
+													break;
+												}else {
+													end = 2;
+												}
+											}
+										} else {
+											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+												noErrors = true;									
+											}
+										}
+									}
+										if (noErrors == true) {
+											commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+											end = 1;
+										} else {
+											end = 2;
+										}
+										
+								} else if (end == 1 ){
+									posError.add("+" + repo.get(i).getName() + "=" + repo.get(i).getVersion());
+									end = 2;
+								}
+							}else {
+								end =2;
+							}
+					} else if(type == ">") {
+						if (Float.parseFloat(thePackage.getVersion()) > Float.parseFloat(v) )  {
+							
+								if (end == 0) {
+									List<List<String>> dependencies = thePackage.getDepends();
+									conflicts.addAll(thePackage.getConflicts());
+									boolean noErrors = true;
+									for (List<String> s : dependencies) {
+										if (s.size() > 1) {
+											
+											for(int looper = 0; looper < s.size();looper++) {
+												
+												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+													posError.add(s.get(looper));
+													end = 1;
+													break;
+												}else {
+													end = 2;
+												}
+											}
+										} else {
+											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+												noErrors = true;									
+											}
+										}
+									}
+										if (noErrors == true) {
+											commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+											end = 1;
+										} else {
+											end = 2;
+										}
+										
+								} else if (end == 1 ){
+									posError.add("+" + repo.get(i).getName() + "=" + repo.get(i).getVersion());
+									end = 2;
+								}
+							}else {
+								end =2;
+						}
+					} else if (type == "<=") {
+						if (  Float.parseFloat(thePackage.getVersion()) <= Float.parseFloat(v) ) {
+							
+								if (end == 0) {
+									List<List<String>> dependencies = thePackage.getDepends();
+									conflicts.addAll(thePackage.getConflicts());
+									boolean noErrors = true;
+									for (List<String> s : dependencies) {
+										if (s.size() > 1) {
+											
+											for(int looper = 0; looper < s.size();looper++) {
+												
+												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+													posError.add(s.get(looper));
+													end = 1;
+													break;
+												}else {
+													end = 2;
+												}
+											}
+										} else {
+											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+												noErrors = true;									
+											}
+										}
+									}
+										if (noErrors == true) {
+											commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+											end = 1;
+										} else {
+											end = 2;
+										}
+										
+								}else if (end == 1 ){
+									posError.add("+" + repo.get(i).getName() + "=" + repo.get(i).getVersion());
+								}
+							}else {
+								end =2;
+							}
+					} else if (type == "<") {
+						if (  Float.parseFloat(thePackage.getVersion()) < Float.parseFloat(v))  {
+							
+								if (end == 0) {
+									List<List<String>> dependencies = thePackage.getDepends();
+									conflicts.addAll(thePackage.getConflicts());
+									boolean noErrors = true;
+									for (List<String> s : dependencies) {
+										if (s.size() > 1) {
+											
+											for(int looper = 0; looper < s.size();looper++) {
+												
+												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+													posError.add(s.get(looper));
+													end = 1;
+													break;
+												}else {
+													end = 2;
+												}
+											}
+										} else {
+											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+												noErrors = true;									
+											}
+										}
+									}
+										if (noErrors == true) {
+											commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+											end = 1;
+										} else {
+											end = 2;
+										}
+										
+								}else if (end == 1 ){
+									posError.add("+" + repo.get(i).getName() + "=" + repo.get(i).getVersion());
+								}
+							}else {
+								end =2;
+						}
+						
+					} else if (type == "any") {
+			
+							if (end == 0) {
+								List<List<String>> dependencies = thePackage.getDepends();
+								conflicts.addAll(thePackage.getConflicts());
+								boolean noErrors = true;
+								for (List<String> s : dependencies) {
+									if (s.size() > 1) {
+										
+										for(int looper = 0; looper < s.size();looper++) {
+											
+											if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+												posError.add(s.get(looper));
+												end = 1;
+												break;
+											}else {
+												end = 2;
+											}
+										}
+									} else {
+										if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+											noErrors = true;									
+										}
+									}
+								}
+									if (noErrors == true) {
+										commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+										end = 1;
+									} else {
+										end = 2;
+									}
+									
+							} else if (end == 1 ){
+								posError.add("+" + repo.get(i-1).getName() + "=" + repo.get(i).getVersion());
+							}
+						
+						} else {
+							end =2;
+						}
+					 
+						
+				
 				}
-			} else if ( end !=0) {
+			} else if ( end == 1) {
+					
 				end = 3;
+				
+			} else if (end ==2) {
+				return false;
 			}
 			i++;
 			
 		}
 		
-	  return false;
+		if (end == 3) {
+			return true;
+		} else {
+			blacklist = new ArrayList<String>();
+			return false;
+		}
+	 
   }
   
-  
+  public static boolean doesConflict(String p, String type, String v, ArrayList<String> blacklist, ArrayList<String> conflicts) {
+	 for (String s : blacklist) {
+		 String v2 = "";
+		  String type2 = "";
+		  if (s.contains(">=")) {
+			   v2 = s.substring(p.indexOf(">=")+2);
+			   type2 = ">=";
+			   s = s.substring(0, p.indexOf(">=") );
+		  } else if (s.contains("<=")) {
+			   v2 = s.substring(p.indexOf("<=")+2);
+			   type2 = "<=";
+			   s = s.substring(0, p.indexOf("<=") );
+		  } else if (p.contains("=")) {
+			   v2 = s.substring(p.indexOf("=")+1);
+			   type2 = "=";
+			   s = s.substring(0, p.indexOf("=") );
+		  } else {
+			type2 = "any";
+		  }
+		  if (p == s) {
+			  if (type == "=") {
+				  if (v== v2 && s == p) {
+					  return true;
+				  }
+		  	  } else if (type == "<=") {
+		  		  if (Float.parseFloat(v2) <= Float.parseFloat(v)) {
+		  			  return true;
+		  		  }
+		  	  } else if (type == "<") {
+		  		 if (Float.parseFloat(v2) < Float.parseFloat(v)) {
+		  			  return true;
+		  		  }
+		  	  } else if (type == ">=") {
+			  		 if (Float.parseFloat(v2) >= Float.parseFloat(v)) {
+			  			  return true;
+			  		  }
+			  }  else if (type == ">") {
+			  		 if (Float.parseFloat(v2) < Float.parseFloat(v)) {
+			  			  return true;
+			  		  }
+			  }
+		  }
+	 }
+	 for (String s : conflicts) {
+		 String v2 = "";
+		  String type2 = "";
+		  if (s.contains(">=")) {
+			   v2 = s.substring(p.indexOf(">=")+2);
+			   type2 = ">=";
+			   s = s.substring(0, p.indexOf(">=") );
+		  } else if (s.contains("<=")) {
+			   v2 = s.substring(p.indexOf("<=")+2);
+			   type2 = "<=";
+			   s = s.substring(0, p.indexOf("<=") );
+		  } else if (p.contains("=")) {
+			   v2 = s.substring(p.indexOf("=")+1);
+			   type2 = "=";
+			   s = s.substring(0, p.indexOf("=") );
+		  } else {
+			type2 = "any";
+		  }
+		  if (p == s) {
+			  if (type == "=") {
+				  if (v== v2 && s == p) {
+					  return true;
+				  }
+		  	  } else if (type == "<=") {
+		  		  if (Float.parseFloat(v2) <= Float.parseFloat(v)) {
+		  			  return true;
+		  		  }
+		  	  } else if (type == "<") {
+		  		 if (Float.parseFloat(v2) < Float.parseFloat(v)) {
+		  			  return true;
+		  		  }
+		  	  } else if (type == ">=") {
+			  		 if (Float.parseFloat(v2) >= Float.parseFloat(v)) {
+			  			  return true;
+			  		  }
+			  }  else if (type == ">") {
+			  		 if (Float.parseFloat(v2) < Float.parseFloat(v)) {
+			  			  return true;
+			  		  }
+			  }
+		  }
+	 }
+	 
+	 
+	return false;	 
+  }
   
   static String readFile(String filename) throws IOException {
     BufferedReader br = new BufferedReader(new FileReader(filename));
