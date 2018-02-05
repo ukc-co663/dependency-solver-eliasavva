@@ -76,6 +76,9 @@ public class Main {
     	
     }
     	System.out.println(commands.toString());
+//    	for (String s : conflicts) {
+//    		System.out.println(s.toString());
+//    	}
  
     
     
@@ -98,14 +101,20 @@ public class Main {
 		   v = p.substring(p.indexOf("=")+1);
 		   type = "=";
 		   p = p.substring(0, p.indexOf("=") );
+	  } else if (p.contains("<")) {
+		   v = p.substring(p.indexOf("<")+1);
+		   type = "=";
+		   p = p.substring(0, p.indexOf("<") );
+	  } else if (p.contains(">")) {
+		   v = p.substring(p.indexOf(">")+1);
+		   type = "=";
+		   p = p.substring(0, p.indexOf(">") );
 	  } else {
 		type = "any";
 	  }
 		 
+	  //System.out.println(p);
 	  
-	  if (blacklist.contains(p + type + v)) {
-	  		return false;
-	  	}
 		int i = 0;
 		int end = 0;
 		while (i < repo.size() && end < 3) {
@@ -115,34 +124,44 @@ public class Main {
 					end = 4;
 				} else {
 					if (type == "=" ){
-						if (v == thePackage.getVersion()) {
+						//System.out.println(thePackage.getVersion() +v);
+						if (Float.parseFloat(thePackage.getVersion()) == Float.parseFloat(v)) {
+					
 							List<List<String>> dependencies = thePackage.getDepends();
 							conflicts.addAll(thePackage.getConflicts());
 							boolean noErrors = true;
 							for (List<String> s : dependencies) {
 								if (s.size() > 1) {
 									
-									for(int looper = 0; looper < s.size();looper++) {
-										
-
+									
+									int looper = 0;
+									boolean ifContinue = true;
+									while (looper < s.size() && ifContinue == true) {
 										if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+											//System.out.println(s.get(looper));
 											posError.add(s.get(looper));
 											end = 1;
-											break;
+											ifContinue = false;
 										}else {
 											end = 2;
 										}
+										looper++;
 									}
 								} else {
-									if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+									if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == true) {
+										
 										noErrors = true;									
 									}
 								}
 							}
 								if (noErrors == true) {
+
+									//System.out.println("passed" + p);
 									commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
 									return true;
 								} else {
+
+									//System.out.println("failed" + p);
 									return false;
 								}
 							
@@ -158,18 +177,22 @@ public class Main {
 									for (List<String> s : dependencies) {
 										if (s.size() > 1) {
 											
-											for(int looper = 0; looper < s.size();looper++) {
-												
+											
+											int looper = 0;
+											boolean ifContinue = true;
+											while (looper < s.size() && ifContinue == true) {
 												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+													//System.out.println(s.get(looper));
 													posError.add(s.get(looper));
 													end = 1;
-													break;
+													ifContinue = false;
 												}else {
 													end = 2;
 												}
+												looper++;
 											}
 										} else {
-											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == true) {
 												noErrors = true;									
 											}
 										}
@@ -198,18 +221,22 @@ public class Main {
 									for (List<String> s : dependencies) {
 										if (s.size() > 1) {
 											
-											for(int looper = 0; looper < s.size();looper++) {
-												
+											
+											int looper = 0;
+											boolean ifContinue = true;
+											while (looper < s.size() && ifContinue == true) {
 												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+												//	System.out.println(s.get(looper));
 													posError.add(s.get(looper));
 													end = 1;
-													break;
+													ifContinue = false;
 												}else {
 													end = 2;
 												}
+												looper++;
 											}
 										} else {
-											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == true) {
 												noErrors = true;									
 											}
 										}
@@ -238,18 +265,22 @@ public class Main {
 									for (List<String> s : dependencies) {
 										if (s.size() > 1) {
 											
-											for(int looper = 0; looper < s.size();looper++) {
-												
+											
+											int looper = 0;
+											boolean ifContinue = true;
+											while (looper < s.size() && ifContinue == true) {
 												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+													//System.out.println(s.get(looper));
 													posError.add(s.get(looper));
 													end = 1;
-													break;
+													ifContinue = false;
 												}else {
 													end = 2;
 												}
+												looper++;
 											}
 										} else {
-											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == true) {
 												noErrors = true;									
 											}
 										}
@@ -277,18 +308,22 @@ public class Main {
 									for (List<String> s : dependencies) {
 										if (s.size() > 1) {
 											
-											for(int looper = 0; looper < s.size();looper++) {
-												
+											
+											int looper = 0;
+											boolean ifContinue = true;
+											while (looper < s.size() && ifContinue == true) {
 												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+													//System.out.println(s.get(looper));
 													posError.add(s.get(looper));
 													end = 1;
-													break;
+													ifContinue = false;
 												}else {
 													end = 2;
 												}
+												looper++;
 											}
 										} else {
-											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+											if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == true) {
 												noErrors = true;									
 											}
 										}
@@ -314,20 +349,28 @@ public class Main {
 								conflicts.addAll(thePackage.getConflicts());
 								boolean noErrors = true;
 								for (List<String> s : dependencies) {
+									//System.out.println(s.size());
 									if (s.size() > 1) {
 										
-										for(int looper = 0; looper < s.size();looper++) {
-											
+										
+										int looper = 0;
+										boolean ifContinue = true;
+										while (looper < s.size() && ifContinue == true) {
 											if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts) == true) {
+												//System.out.println("passed " + s.get(looper));
 												posError.add(s.get(looper));
 												end = 1;
-												break;
+												ifContinue = false;
+												noErrors = true;
 											}else {
+												//System.out.println("failed " + s.get(looper));
 												end = 2;
+												noErrors = false;
 											}
+											looper++;
 										}
 									} else {
-										if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == false) {
+										if (install(s.get(0), commands, posError, repo, initial, blacklist, conflicts) == true) {
 											noErrors = true;									
 										}
 									}
