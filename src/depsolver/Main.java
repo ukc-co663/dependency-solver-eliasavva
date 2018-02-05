@@ -43,6 +43,10 @@ public class Main {
 
     // CONTINUE HERE: using repo, initial and constraints, compute a solution
     // and print the answer
+    
+    
+    //go through the possibilities and then store the risk points everytime there is a fork, and then if there is a loop of conflicts then go back to risk point and try other fork
+    
     System.out.println(constraints.toString());
   }
 
