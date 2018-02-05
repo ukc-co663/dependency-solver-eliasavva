@@ -37,18 +37,101 @@ public class Main {
 
     // CHANGE CODE BELOW:
     // using repo, initial and constraints, compute a solution and print the answer
-    for (Package p : repo) {
-      System.out.printf("package %s version %s\n", p.getName(), p.getVersion());
-      for (List<String> clause : p.getDepends()) {
-        System.out.printf("  dep:");
-        for (String q : clause) {
-          System.out.printf(" %s", q);
-        }
-        System.out.printf("\n");
-      }
-    }
-  }
+//    for (Package p : repo) {
+//      System.out.printf("package %s version %s\n", p.getName(), p.getVersion());
+//      for (List<String> clause : p.getDepends()) {
+//        System.out.printf("  dep:");
+//        for (String q : clause) {
+//          System.out.printf(" %s", q);
+//        }
+//        System.out.printf("\n");
+//      }
+//    }
 
+    
+    ArrayList<String> commands = new ArrayList<String>();
+    ArrayList<String> posError= new ArrayList<String>();
+    ArrayList<String> blacklist= new ArrayList<String>();
+    int j = 0;
+    while ( j < constraints.size()) {
+    	String p = constraints.get(j).substring(1);
+    	boolean result = install(p, commands, posError, repo, initial, blacklist);
+    	j++;
+    }
+    
+    
+    
+    
+    
+  }
+  
+  
+  public static boolean install(String p, List<String> commands, List<String> posError, List<Package> repo, List<String> initial, List<String> blacklist) {
+	  String v = "";
+	  String type = "";
+	  if (p.contains(">=")) {
+		   v = p.substring(p.indexOf(">=")+1);
+		   type = ">=";
+		   p = p.substring(0, p.indexOf(">=") );
+	  } else if (p.contains("<=")) {
+		   v = p.substring(p.indexOf("<=")+1);
+		   type = "<=";
+		   p = p.substring(0, p.indexOf("<=") );
+	  } else if (p.contains("=")) {
+		   v = p.substring(p.indexOf("=")+1);
+		   type = "=";
+		   p = p.substring(0, p.indexOf("=") );
+	  } else {
+		type = "any";
+	  }
+		 
+	  
+	  if (blacklist.contains(p + type + v)) {
+	  		return false;
+	  	}
+		int i = 0;
+		int end = 0;
+		while (i < repo.size() && end != 3) {
+			Package thePackage = repo.get(i);
+			if (thePackage.getName().equals(p)){
+				if (type == "=" ){
+					if (v == thePackage.getVersion()) {
+						if (install(thePackage.getName(), commands, posError, repo, initial, blacklist) == true) {
+							commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+							return true;
+						} else {
+							return false;
+						}
+					}
+				} else if(type == ">=") {
+					if (Integer.parseInt(v) >= Integer.parseInt(thePackage.getVersion()) ) {
+						if (install(thePackage.getName(), commands, posError, repo, initial, blacklist) == true) {
+							if (end == 0) {
+								commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+								end = 1;
+							} else {
+								posError.add("+" + repo.get(i).getName() + "=" + repo.get(i).getVersion());
+								end = 2;
+							}
+						}
+					}
+				} else if (type == "<=") {
+					
+				} else if (type == "any") {
+					
+				}
+			} else if ( end !=0) {
+				end = 3;
+			}
+			i++;
+			
+		}
+		
+	  return false;
+  }
+  
+  
+  
   static String readFile(String filename) throws IOException {
     BufferedReader br = new BufferedReader(new FileReader(filename));
     StringBuilder sb = new StringBuilder();
