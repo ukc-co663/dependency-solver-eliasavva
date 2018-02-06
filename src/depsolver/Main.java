@@ -7,7 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 class Package {
   private String name;
   private String version;
@@ -39,13 +40,14 @@ public class Main {
     // using repo, initial and constraints, compute a solution and print the answer
 
     //doesnt iterate through different versions of one package
+    //doesnt take into account initial state
 
     
-   Main main = new Main(repo, initial, constraints);
+   Main main = new Main(repo, initial, constraints, args);
     
   }
   
-  public Main(List<Package> repo, List<String> initial,List<String> constraints) {
+  public Main(List<Package> repo, List<String> initial,List<String> constraints, String[] args)  throws IOException  {
 	  ArrayList<String> commands = new ArrayList<String>();
 	    ArrayList<String> posError= new ArrayList<String>();
 	    ArrayList<String> blacklist= new ArrayList<String>();
@@ -76,8 +78,11 @@ public class Main {
 	    }
 	    	
 	    }
-	    	System.out.println(commands.toString());
 	    
+	    BufferedWriter writer = new BufferedWriter(new FileWriter(args[0].substring(0, args[0].length() -15) + "/commands.json"));
+	    writer.write(JSON.toJSONString(commands));
+	     
+	    writer.close();
 	    
   }
   
