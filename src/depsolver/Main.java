@@ -70,6 +70,9 @@ public class Main {
 	    	} else {	
 	    		j++;
 	    	}
+	    } else {
+	    	commands.add(p);
+	    	j++;
 	    }
 	    	
 	    }
@@ -299,7 +302,7 @@ public class Main {
   }
   
   public boolean doesConflict(String p, String type, String v, ArrayList<String> blacklist, ArrayList<String> conflicts) {
-	 System.out.println(conflicts);
+	 //System.out.println(conflicts);
 	 for (String s : blacklist) {
 		 String v2 = "";
 		  String type2 = "";
