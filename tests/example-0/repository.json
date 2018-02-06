@@ -8,6 +8,9 @@
   , "version" : "3.0"
   , "size" : 83619 }
 , { "name" : "B"
+  , "version" : "3.1"
+  , "size" : 83619 }
+, { "name" : "B"
   , "version" : "3.2"
   , "size" : 211234
   , "conflicts" : [ "B<3.2" ] }
@@ -19,4 +22,4 @@
 , { "name" : "D"
   , "version" : "10.3.1"
   , "size" : 88847
-  , "conflicts" : [ "B>=3.1" ] } ]
+  , "conflicts" : [ "B>=3.2" ] } ]
