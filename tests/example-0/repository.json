@@ -14,7 +14,7 @@
 , { "name" : "C"
   , "version" : "1"
   , "size" : 23
-  , "conflicts" : [ "B" ]
+  , "conflicts" : [ "" ]
   , "depends" : [] }
 , { "name" : "D"
   , "version" : "10.3.1"
