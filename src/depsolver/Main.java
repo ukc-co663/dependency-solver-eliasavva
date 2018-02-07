@@ -54,35 +54,27 @@ public class Main {
 	    ArrayList<String> blacklist= new ArrayList<String>();
 	    ArrayList<String> conflicts= new ArrayList<String>();
 	    int j = 0;
+	    initial.remove("");
 	    while ( j < constraints.size()) {
-	    	
 	    	String p = constraints.get(j);
-	    	
-	    	
 	    	if (p.substring(0,1).equals("+")) {
 	    		
-	    	
-	    	
-	    	if (install(p.substring(1), commands, posError, repo, initial, blacklist, conflicts, false) == false || checkCommands(commands, conflicts) == true) {
-	    		blacklist.add(posError.get(posError.size()-1));
-	    		posError.clear();;
-				commands.clear(); 
-				conflicts.clear();
-	    		j = 0;
-	    	} else {	
-	    		
-	    			
-	    		
+	    		if (install(p.substring(1), commands, posError, repo, initial, blacklist, conflicts, false) == false || checkCommands(commands, conflicts) == true) {
+	    			blacklist.add(posError.get(posError.size()-1));
+	    			posError.clear();;
+	    			commands.clear(); 
+	    			conflicts.clear();
+	    			j = 0;
+	    		} else {	
+	    			j++;
+	    		}
+	    	} else {
+	    		commands.add(p);
 	    		j++;
-	    		
 	    	}
-	    } else {
-	    	commands.add(p);
-	    	j++;
-	    }
-	    	
 	    }
 	    
+	    System.out.println(commands);
 	    BufferedWriter writer = new BufferedWriter(new FileWriter(args[0].substring(0, args[0].length() -15) + "/commands.json"));
 	    writer.write(JSON.toJSONString(commands));
 	     
@@ -92,7 +84,7 @@ public class Main {
   
   
   public boolean install(String p, ArrayList<String> commands, ArrayList<String> posError, List<Package> repo, List<String> initial, ArrayList<String> blacklist, ArrayList<String> conflicts, boolean wasOption) {
-	//System.out.println(p);
+
 	  String v = "";
 	  String type = "";
 	  if (p.contains(">=")) {
@@ -119,35 +111,25 @@ public class Main {
 		type = "any";
 	  }
 	  
-		 //System.out.println(p + type + v);
-	 
-	  
 		int i = 0;
 		int end = 0;
 		while (i < repo.size() && end < 3) {
 			Package thePackage = repo.get(i);
-			//System.out.println(thePackage.getName() + "=" + thePackage.getVersion());  
 			if (thePackage.getName().equals(p)){
 				if (doesConflict(p,type, thePackage.getVersion(), blacklist, conflicts) ) {
-
-					//not s2re about what value
 					end = -1;
 				} else {
 					if (type.equals("=" )){
 						if (end !=1) {
-							
 							if (wasOption) {
 								posError.add(p + "=" + thePackage.getVersion());
-								System.out.println(posError);
 							  }
-							
 							List<List<String>> dependencies = thePackage.getDepends();
 							conflicts.addAll(thePackage.getConflicts());
 							conflicts.remove("");
 							boolean noErrors = true;
 							int j = 0;
 							boolean toContinue = true;
-								
 							while (j < dependencies.size() && toContinue == true) {
 								List<String> s = dependencies.get(j);
 								boolean theBool = false;
@@ -156,58 +138,46 @@ public class Main {
 									}
 									int looper = 0;
 									boolean ifContinue = true;
-									
 									while (looper < s.size() && ifContinue == true) {
-										if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts, theBool) == true) {
-														
+										if ( checkCommands(commands, s) == false &&  checkCommands(initial, s) == false) {
+											if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts, theBool) == true) {														
 												end = 1;
 												noErrors = true;
 												ifContinue = false;
-												
-										
-										}else {
-											//System.out.println(s.get(looper));
+											}else {
 												noErrors = false;
-
+											}
+										}else {
+											ifContinue = false;
 										}
-									
 										looper++;
 									}
-							
 								j++;
 							}
-							
-								if (noErrors == true) {
+							if (noErrors == true) {
+								commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+								end = 3;
+								return true;
+							} else {
+								end = 2;
+								return false;
 									
-									
-									commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
-									end = 3;
-									return true;
-								} else {
-									end = 2;
-									return false;
-									
-								}
-								
+							}
 						} 
 					
 					} else if (type.equals("any")) {
-if (end !=1) {
-							
+						if (end !=1) {
 							if (wasOption) {
 								posError.add(p + "=" + thePackage.getVersion());
-								System.out.println(posError); 
 							  }
-							
 							List<List<String>> dependencies = thePackage.getDepends();
-							
+							dependencies.remove("");
 							conflicts.addAll(thePackage.getConflicts());
 							conflicts.remove("");
 							boolean noErrors = true;
 							int j = 0;
 							boolean toContinue = true;
 							while (j < dependencies.size() && toContinue == true) {
-								//System.out.println(dependencies.toString());
 								List<String> s = dependencies.get(j);
 								boolean theBool = false;
 									if (s.size() > 1) {
@@ -216,49 +186,38 @@ if (end !=1) {
 									int looper = 0;
 									boolean ifContinue = true;
 									while (looper < s.size() && ifContinue == true) {
-										if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts, theBool) == true) {
-													//System.out.println(s.get(looper));			
+										if ( checkCommands(commands, s) == false &&  checkCommands(initial, s) == false) {
+											if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts, theBool) == true) {
 												end = 1;
 												noErrors = true;
 												ifContinue = false;
-												
-										
-										}else {
+											}else {
 												noErrors = false;
-
+											}
+										} else {
+											ifContinue = false;
 										}
-									
 										looper++;
 									}
-							
 								j++;
 							}
-							
-								if (noErrors == true) {
-									
-									
-									commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
-									end = 3;
-									return true;
-								} else {
-									end = 2;
-									return false;
-									
-								}
-								
+							if (noErrors == true) {
+								commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+								end = 3;
+								return true;
+							} else {
+								end = 2;
+								return false;
+							}
 						} 
 					
 						} else {
 							if (compare(thePackage.getVersion(), type, v)) {
 								if (end !=1) {
-									
 									if (wasOption) {
 										posError.add(p + "=" + thePackage.getVersion());
-										System.out.println(posError);  
-									  }
-									
+									}
 									List<List<String>> dependencies = thePackage.getDepends();
-									
 									conflicts.addAll(thePackage.getConflicts());
 									conflicts.remove("");
 									boolean noErrors = true;
@@ -273,64 +232,49 @@ if (end !=1) {
 											int looper = 0;
 											boolean ifContinue = true;
 											while (looper < s.size() && ifContinue == true) {
-												if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts, theBool) == true) {
-															//System.out.println(s.get(looper));			
+												if ( checkCommands(commands, s) == false &&  checkCommands(initial, s) == false) {
+													if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts, theBool) == true) {
 														end = 1;
 														noErrors = true;
 														ifContinue = false;
-														
-												
-												}else {
+													}else {
 														noErrors = false;
-
+													}
+												}else {
+													ifContinue = false;
 												}
-											
 												looper++;
 											}
-									
 										j++;
 									}
 									
-										if (noErrors == true) {
-											
-											
-											commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
-											end = 3;
-											return true;
-										} else {
-											end = 2;
-											return false;
-											
-										}
-										
+									if (noErrors == true) {
+										commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+										end = 3;
+										return true;
+									} else {
+										end = 2;
+										return false;
+									}
 								} 
 							}else {
 								end = 2;
 							}
 						}
-					 
-						
-				
 				}
 			} else if ( end == 1 ) {
-					
 				end = 3;
-				
-			
 			} else if (end ==-1 || end == 2) {
 				end = 4;
 			}
 			i++;
-			
 		}
-		
 		if (end == 3 || end ==1) {
 			return true;
 		} else {
-			//blacklist = new ArrayList<String>();
+			blacklist = new ArrayList<String>();
 			return false;
 		}
-	 
   }
   
   public boolean doesConflict(String p, String type, String v, ArrayList<String> blacklist, List<String> conflicts) {
@@ -426,7 +370,7 @@ if (end !=1) {
   }
   
   public boolean checkCommands (List<String> commands, List<String> conflicts) {
-	 System.out.println(commands);
+	 //System.out.println(commands);
 	  
 	  if (commands.isEmpty() || conflicts.isEmpty()) {
 		  return false;
@@ -453,12 +397,15 @@ if (end !=1) {
 		  } else if (command.contains("=")) {
 			   v = command.substring(command.indexOf("=")+1);
 			   type = "=";
-			   command = command.substring(1, command.indexOf("=") );
-		  } else {
-			type = "any";
-			command = command.substring(1, command.length()-3 );
+			   if (command.substring(0,1) == "+") {
+				   command = command.substring(1, command.indexOf("=") );
+			   } else {
+				   command = command.substring(0, command.indexOf("=") );
+			   }
+			   
+		  
 		  }
-		  System.out.println(conflicts);
+		  //System.out.println(conflicts);
 		 
 		  for(String conflict : conflicts) {
 			  String v2 = "";
@@ -486,12 +433,12 @@ if (end !=1) {
 			  } else {
 				  
 				type2 = "any";
-				conflict = conflict.substring(1, conflict.length()-3 );
+				
 			  }
 			 
 			  if (command.equals(conflict)) {
 				  if (compare(v, type2, v2) == true) {
-					  System.out.println(v + type2 + v2);
+					  //System.out.println(v + type2 + v2);
 					  return true;
 				  }
 			  }
