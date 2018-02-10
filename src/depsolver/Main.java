@@ -74,11 +74,8 @@ public class Main {
 	    	}
 	    }
 	    
-	    System.out.println(commands);
-	    BufferedWriter writer = new BufferedWriter(new FileWriter(args[0].substring(0, args[0].length() -15) + "/commands.json"));
-	    writer.write(JSON.toJSONString(commands));
-	     
-	    writer.close();
+	    System.out.println(JSON.toJSONString(commands));
+	   
 	    
   }
   
