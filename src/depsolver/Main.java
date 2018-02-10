@@ -60,7 +60,7 @@ public class Main {
 	    	String p = constraints.get(j);
 	    	if (p.substring(0,1).equals("+")) {
 	    		
-	    		if (install(p.substring(1), commands, posError, repo, initial, blacklist, conflicts, false, new ArrayList<String>()) == false) {
+	    		if (install(p.substring(1), commands, posError, repo, initial, blacklist, conflicts, false, new ArrayList<String>()) == false || checkCommands(commands, conflicts) == true) {
 	    			blacklist.add(posError.get(posError.size()-1));
 	    			posError.clear();;
 	    			commands.clear(); 
@@ -165,7 +165,7 @@ public class Main {
 									}
 								j++;
 							}
-							pending.remove(pending.add("+" + thePackage.getName() + "=" + thePackage.getVersion()));
+							pending.remove("+" + thePackage.getName() + "=" + thePackage.getVersion());
 							if (noErrors == true) {
 								commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
 								end = 3;
@@ -226,7 +226,7 @@ public class Main {
 									}
 								j++;
 							}
-							pending.remove(pending.add("+" + thePackage.getName() + "=" + thePackage.getVersion()));
+							pending.remove("+" + thePackage.getName() + "=" + thePackage.getVersion());
 							if (noErrors == true) {
 								commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
 								end = 3;
@@ -284,9 +284,9 @@ public class Main {
 											}
 										j++;
 									}
-									pending.remove(pending.add("+" + thePackage.getName() + "=" + thePackage.getVersion()));
+									pending.remove("+" + thePackage.getName() + "=" + thePackage.getVersion());
 									if (noErrors == true) {
-										//commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
+										commands.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
 										end = 3;
 										return true;
 									} else {
@@ -307,7 +307,7 @@ public class Main {
 		if (end == 3 || end ==1) {
 			return true;
 		} else {
-			//blacklist = new ArrayList<String>();
+			blacklist = new ArrayList<String>();
 			return false;
 		}
   }
