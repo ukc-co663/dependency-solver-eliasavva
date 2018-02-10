@@ -129,10 +129,12 @@ public class Main {
 							ArrayList<String> toRemove = checkInitial(initial, conflicts);
 							if (toRemove.size() == 1) {
 								commands.add(toRemove.get(0));
-								initial.remove(toRemove);
+								initial.remove(toRemove.get(0).substring(1));
 							} else {
-								initial.addAll(toRemove);
-								initial.removeAll(toRemove);
+								for (String remove : toRemove) {
+									commands.add(remove);
+									initial.remove(remove.substring(1));
+								}
 							}
 							boolean noErrors = true;
 							int j = 0;
@@ -184,10 +186,12 @@ public class Main {
 							ArrayList<String> toRemove = checkInitial(initial, conflicts);
 							if (toRemove.size() == 1) {
 								commands.add(toRemove.get(0));
-								initial.remove(toRemove);
+								initial.remove(toRemove.get(0).substring(1));
 							} else {
-								initial.addAll(toRemove);
-								initial.removeAll(toRemove);
+								for (String remove : toRemove) {
+									commands.add(remove);
+									initial.remove(remove.substring(1));
+								}
 							}
 							boolean noErrors = true;
 							int j = 0;
@@ -238,10 +242,12 @@ public class Main {
 									ArrayList<String> toRemove = checkInitial(initial, conflicts);
 									if (toRemove.size() == 1) {
 										commands.add(toRemove.get(0));
-										initial.remove(toRemove);
+										initial.remove(toRemove.get(0).substring(1));
 									} else {
-										initial.addAll(toRemove);
-										initial.removeAll(toRemove);
+										for (String remove : toRemove) {
+											commands.add(remove);
+											initial.remove(remove.substring(1));
+										}
 									}
 									boolean noErrors = true;
 									int j = 0;
@@ -421,9 +427,9 @@ public class Main {
 		  } else if (command.contains("=")) {
 			   v = command.substring(command.indexOf("=")+1);
 			   type = "=";
-			   if (command.substring(0,1) == "+") {
+			   if (command.substring(0,1).equals("+")){
 				   command = command.substring(1, command.indexOf("=") );
-			   } else if (command.substring(0,1) == "-"){
+			   } else if (command.substring(0,1).equals("-")){
 				   negative = true;
 				   command = command.substring(1, command.indexOf("=") );
 			   }else {
@@ -486,28 +492,10 @@ public class Main {
 	  for (String ins : initial) {
 		  String v = "";
 		  String type = "";
-		  if (ins.contains(">=")) {
-			   v = ins.substring(ins.indexOf(">=")+2);
-			   type = ">=";
-			   ins = ins.substring(1, ins.indexOf(">=") );
-		  } else if (ins.contains("<=")) {
-			   v = ins.substring(ins.indexOf("<=")+2);
-			   type = "<=";
-			   ins = ins.substring(1, ins.indexOf("<=") );
-		  } else if (ins.contains("<")) {
-			   v = ins.substring(ins.indexOf("<")+1);
-			   type = "<";
-			   ins = ins.substring(1, ins.indexOf("<") );
-		  } else if (ins.contains(">")) {
-			   v = ins.substring(ins.indexOf(">")+1);
-			   type = ">";
-			   ins = ins.substring(1, ins.indexOf("<=") );
-		  } else if (ins.contains("=")) {
-			   v = ins.substring(ins.indexOf("=")+1);
-			   type = "=";
-			   ins = ins.substring(0, ins.indexOf("=") );		   
-		  
-		  }
+		 
+		  v = ins.substring(ins.indexOf("=")+1);
+		  type = "=";
+		  ins = ins.substring(0, ins.indexOf("=") );		   
 		 
 		 
 		  for(String conflict : conflicts) {
@@ -541,8 +529,8 @@ public class Main {
 			 
 			  if (ins.equals(conflict)) {
 				  if (compare(v, type2, v2) == true) {
-					toRemove.add("-" + ins);	
-					
+					toRemove.add("-" + ins + "=" + v);	
+					//System.out.println(toRemove);
 				  }	
 			  }
 		  }
