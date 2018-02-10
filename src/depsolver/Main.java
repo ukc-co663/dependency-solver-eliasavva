@@ -55,6 +55,7 @@ public class Main {
 	    ArrayList<String> conflicts= new ArrayList<String>();
 	    int j = 0;
 	    initial.remove("");
+	    List<String> originalInitial = initial;
 	    while ( j < constraints.size()) {
 	    	String p = constraints.get(j);
 	    	if (p.substring(0,1).equals("+")) {
@@ -64,6 +65,7 @@ public class Main {
 	    			posError.clear();;
 	    			commands.clear(); 
 	    			conflicts.clear();
+	    			initial = originalInitial;
 	    			j = 0;
 	    		} else {	
 	    			j++;
@@ -124,6 +126,14 @@ public class Main {
 							List<List<String>> dependencies = thePackage.getDepends();
 							conflicts.addAll(thePackage.getConflicts());
 							conflicts.remove("");
+							ArrayList<String> toRemove = checkInitial(initial, conflicts);
+							if (toRemove.size() == 1) {
+								commands.add(toRemove.get(0));
+								initial.remove(toRemove);
+							} else {
+								initial.addAll(toRemove);
+								initial.removeAll(toRemove);
+							}
 							boolean noErrors = true;
 							int j = 0;
 							boolean toContinue = true;
@@ -171,6 +181,14 @@ public class Main {
 							dependencies.remove("");
 							conflicts.addAll(thePackage.getConflicts());
 							conflicts.remove("");
+							ArrayList<String> toRemove = checkInitial(initial, conflicts);
+							if (toRemove.size() == 1) {
+								commands.add(toRemove.get(0));
+								initial.remove(toRemove);
+							} else {
+								initial.addAll(toRemove);
+								initial.removeAll(toRemove);
+							}
 							boolean noErrors = true;
 							int j = 0;
 							boolean toContinue = true;
@@ -217,6 +235,14 @@ public class Main {
 									List<List<String>> dependencies = thePackage.getDepends();
 									conflicts.addAll(thePackage.getConflicts());
 									conflicts.remove("");
+									ArrayList<String> toRemove = checkInitial(initial, conflicts);
+									if (toRemove.size() == 1) {
+										commands.add(toRemove.get(0));
+										initial.remove(toRemove);
+									} else {
+										initial.addAll(toRemove);
+										initial.removeAll(toRemove);
+									}
 									boolean noErrors = true;
 									int j = 0;
 									boolean toContinue = true;
@@ -368,11 +394,12 @@ public class Main {
   
   public boolean checkCommands (List<String> commands, List<String> conflicts) {
 	 //System.out.println(commands);
-	  
+	 
 	  if (commands.isEmpty() || conflicts.isEmpty()) {
 		  return false;
 	  }
 	  for (String command : commands) {
+		  boolean negative = false;
 		  String v = "";
 		  String type = "";
 		  if (command.contains(">=")) {
@@ -396,7 +423,10 @@ public class Main {
 			   type = "=";
 			   if (command.substring(0,1) == "+") {
 				   command = command.substring(1, command.indexOf("=") );
-			   } else {
+			   } else if (command.substring(0,1) == "-"){
+				   negative = true;
+				   command = command.substring(1, command.indexOf("=") );
+			   }else {
 				   command = command.substring(0, command.indexOf("=") );
 			   }
 			   
@@ -436,13 +466,88 @@ public class Main {
 			  if (command.equals(conflict)) {
 				  if (compare(v, type2, v2) == true) {
 					  //System.out.println(v + type2 + v2);
-					  return true;
+					  if (negative == true) {
+						  return false;
+					  } else {
+						 return true; 
+					  }
+					  
 				  }
 			  }
 			  
 		  }
 	  }
 	  return false;
+  }
+  
+  ArrayList<String> checkInitial(List<String> initial, List<String> conflicts) {
+	  //System.out.println(commands);
+		ArrayList<String> toRemove = new ArrayList<String>();
+	  for (String ins : initial) {
+		  String v = "";
+		  String type = "";
+		  if (ins.contains(">=")) {
+			   v = ins.substring(ins.indexOf(">=")+2);
+			   type = ">=";
+			   ins = ins.substring(1, ins.indexOf(">=") );
+		  } else if (ins.contains("<=")) {
+			   v = ins.substring(ins.indexOf("<=")+2);
+			   type = "<=";
+			   ins = ins.substring(1, ins.indexOf("<=") );
+		  } else if (ins.contains("<")) {
+			   v = ins.substring(ins.indexOf("<")+1);
+			   type = "<";
+			   ins = ins.substring(1, ins.indexOf("<") );
+		  } else if (ins.contains(">")) {
+			   v = ins.substring(ins.indexOf(">")+1);
+			   type = ">";
+			   ins = ins.substring(1, ins.indexOf("<=") );
+		  } else if (ins.contains("=")) {
+			   v = ins.substring(ins.indexOf("=")+1);
+			   type = "=";
+			   ins = ins.substring(0, ins.indexOf("=") );		   
+		  
+		  }
+		 
+		 
+		  for(String conflict : conflicts) {
+			  String v2 = "";
+			  String type2 = "";
+			  if (conflict.contains(">=")) {
+				   v2 = conflict.substring(conflict.indexOf(">=")+2);
+				   type2 = ">=";
+				   conflict = conflict.substring(0, conflict.indexOf(">=") );
+			  } else if (conflict.contains("<=")) {
+				   v2 = conflict.substring(conflict.indexOf("<=")+2);
+				   type2 = "<=";
+				   conflict = conflict.substring(0, conflict.indexOf("<=") );
+			  } else if (conflict.contains("<")) {
+				   v2 = conflict.substring(conflict.indexOf("<")+1);
+				   type2 = "<";
+				   conflict = conflict.substring(0, conflict.indexOf("<") );
+			  } else if (conflict.contains(">")) {
+				   v2 = conflict.substring(conflict.indexOf(">")+1);
+				   type2 = ">";
+				   conflict = conflict.substring(0, conflict.indexOf(">") );
+			  } else if (conflict.contains("=")) {
+				   v2 = conflict.substring(conflict.indexOf("=")+1);
+				   type2 = "=";
+				   conflict = conflict.substring(0, conflict.indexOf("=") );
+			  } else {
+				  
+				type2 = "any";
+				
+			  }
+			 
+			  if (ins.equals(conflict)) {
+				  if (compare(v, type2, v2) == true) {
+					toRemove.add("-" + ins);	
+					
+				  }	
+			  }
+		  }
+	  }
+	  return toRemove;
   }
   
   static String readFile(String filename) throws IOException {
