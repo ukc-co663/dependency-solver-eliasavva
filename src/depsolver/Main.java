@@ -150,6 +150,9 @@ public class Main {
 									int looper = 0;
 									boolean ifContinue = true;
 									while (looper < s.size() && ifContinue == true) {
+										if (checkCommands(pending, s) == true) {
+											return false;
+										}
 										if ( checkCommands(commands, s) == false &&  checkCommands(initial, s) == false) {
 											if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts, theBool, pending) == true) {														
 												end = 1;
@@ -211,6 +214,9 @@ public class Main {
 									int looper = 0;
 									boolean ifContinue = true;
 									while (looper < s.size() && ifContinue == true) {
+										if (checkCommands(pending, s) == true) {
+											return false;
+										}
 										if ( checkCommands(commands, s) == false &&  checkCommands(initial, s) == false) {
 											if (install(s.get(looper), commands, posError, repo, initial, blacklist, conflicts, theBool, pending) == true) {
 												end = 1;
