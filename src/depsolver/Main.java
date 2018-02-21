@@ -6,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 class Package {
@@ -129,6 +129,14 @@ public class Main {
 							  }
 							pending.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
 							List<List<String>> dependencies = thePackage.getDepends();
+							//System.out.println(dependencies.toString());
+							Collections.sort(dependencies, new Comparator<List>(){
+							    public int compare(List a1, List a2) {
+							        return a2.size() - a1.size(); // assumes you want biggest to smallest
+							    }
+							});
+							Collections.reverse(dependencies);
+							//System.out.println(dependencies.toString());
 							conflicts.addAll(thePackage.getConflicts());
 							conflicts.remove("");
 							ArrayList<String> toRemove = checkInitial(initial, conflicts);
@@ -163,8 +171,10 @@ public class Main {
 							boolean noErrors = true;
 							int j = 0;
 							boolean toContinue = true;
+					
 							while (j < dependencies.size() && toContinue == true) {
 								List<String> s = dependencies.get(j);
+								
 								boolean theBool = false;
 									if (s.size() > 1) {
 										theBool = true;
@@ -212,6 +222,14 @@ public class Main {
 							  }
 							pending.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
 							List<List<String>> dependencies = thePackage.getDepends();
+							//System.out.println(dependencies.toString());
+							Collections.sort(dependencies, new Comparator<List>(){
+							    public int compare(List a1, List a2) {
+							        return a2.size() - a1.size(); // assumes you want biggest to smallest
+							    }
+							});
+							Collections.reverse(dependencies);
+							//System.out.println(dependencies.toString());
 							dependencies.remove("");
 							conflicts.addAll(thePackage.getConflicts());
 							conflicts.remove("");
@@ -292,6 +310,14 @@ public class Main {
 									}
 									pending.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
 									List<List<String>> dependencies = thePackage.getDepends();
+									//System.out.println(dependencies.toString());
+									Collections.sort(dependencies, new Comparator<List>(){
+									    public int compare(List a1, List a2) {
+									        return a2.size() - a1.size(); // assumes you want biggest to smallest
+									    }
+									});
+									Collections.reverse(dependencies);
+									//System.out.println(dependencies.toString());
 									conflicts.addAll(thePackage.getConflicts());
 									conflicts.remove("");
 									ArrayList<String> toRemove = checkInitial(initial, conflicts);
@@ -652,7 +678,7 @@ public class Main {
 								looper++;
 							}
 							if (noErrors == false) {
-								System.out.println(p);
+								//System.out.println(p);
 								return false;
 							}
 						j++;
