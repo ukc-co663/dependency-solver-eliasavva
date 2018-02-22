@@ -90,7 +90,7 @@ public class Main {
   public boolean install(String p, ArrayList<String> commands, ArrayList<String> posError, List<Package> repo, List<String> initial, ArrayList<String> blacklist, ArrayList<String> conflicts, boolean wasOption, ArrayList<String> pending) {
 
 	
-		
+		//splits for comparing purposes
 	  String v = "";
 	  String type = "";
 	  if (p.contains(">=")) {
@@ -119,14 +119,18 @@ public class Main {
 	  	boolean done = false;
 		int i = 0;
 		int end = 0;
+		
+		//looks through repo to find packages that match version and name
 		while (i < repo.size() && end < 3) {
 			Package thePackage = repo.get(i);
 			if (thePackage.getName().equals(p)){
+				//checks if conflicts or was already tried and failed
 				if (doesConflict(p, thePackage.getVersion(), blacklist, conflicts) ) {
 				
 						end = -1;
 					
 				} else {
+					//checks what operator si used 
 					if (type.equals("=" )){
 						if (compare(thePackage.getVersion(), type, v)) {
 						if (end !=1) {
@@ -136,6 +140,7 @@ public class Main {
 							pending.add("+" + thePackage.getName() + "=" + thePackage.getVersion());
 							List<List<String>> dependencies = thePackage.getDepends();
 							//System.out.println(dependencies.toString());
+							//sorts dependencies form shortest to longest to reduce errors
 							Collections.sort(dependencies, new Comparator<List>(){
 							    public int compare(List a1, List a2) {
 							        return a2.size() - a1.size(); // assumes you want biggest to smallest
@@ -145,6 +150,7 @@ public class Main {
 							//System.out.println(dependencies.toString());
 							conflicts.addAll(thePackage.getConflicts());
 							conflicts.remove("");
+							//checks if the conflicts conflict with the initial
 							ArrayList<String> toRemove = checkInitial(initial, conflicts);
 							
 							if (toRemove.size() == 1) {
@@ -159,6 +165,7 @@ public class Main {
 									initial.remove(remove.substring(1));
 								}
 							}
+							//attempt at removing things that conflict, such as in seen-6!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 							 ArrayList<String> maybeUninstall = checkInitial(state, conflicts);
 								
 								for (String remove : maybeUninstall) {
@@ -171,7 +178,7 @@ public class Main {
 							boolean noErrors = true;
 							int j = 0;
 							boolean toContinue = true;
-					
+					//goes through dependencies
 							while (j < dependencies.size() && toContinue == true) {
 								List<String> s = dependencies.get(j);
 								
@@ -208,8 +215,6 @@ public class Main {
 								return true;
 							} else {
 								
-								
-								
 								end = 2;
 								
 								conflicts.removeAll(thePackage.getConflicts());
@@ -221,6 +226,7 @@ public class Main {
 							end =2;
 						}
 					} else if (type.equals("any")) {
+						//similar to above
 						if (end !=1) {
 							if (wasOption) {
 								posError.add(p + "=" + thePackage.getVersion());
@@ -409,6 +415,7 @@ public class Main {
   
   public boolean doesConflict(String p, String v, ArrayList<String> blacklist, List<String> conflicts) {
 	//System.out.println(blacklist);
+	  //checks if there is a conflict
 	 for (String s : blacklist) {
 		 
 		  if (s.equals(p + "=" + v)) {
@@ -452,7 +459,7 @@ public class Main {
   }
   
   public boolean compare(String v1,String type, String v2) {
-	
+	//compares two versions using the operator specified
 		  if (type.equals("=")) {
 			  if (v1.equals(v2) ) {
 				  return true;
@@ -501,7 +508,7 @@ public class Main {
   
   public boolean checkCommands (List<String> commands, List<String> conflicts) {
 	 //System.out.println(commands);
-	 
+	 //checks if the commands conflict
 	  if (commands.isEmpty() || conflicts.isEmpty()) {
 		  return false;
 	  }
@@ -589,6 +596,8 @@ public class Main {
   
   ArrayList<String> checkInitial(List<String> initial, List<String> conflicts) {
 	  //System.out.println(commands);
+	  
+	  //checks if the initial conflicts
 		ArrayList<String> toRemove = new ArrayList<String>();
 	  for (String ins : initial) {
 		  String v = "";
@@ -641,6 +650,8 @@ public class Main {
   
   public void updateState(ArrayList<String> commands) {
 	  //System.out.println(state);
+	  
+	  //updates the current state
 	  for (String s : commands) {
 		  if (s.substring(0,1).equals("-")) {
 			  state.remove(s.substring(1));
@@ -652,7 +663,7 @@ public class Main {
   
   public boolean canUninstall(String p, List<Package> repo) {
 	  //p = p.substring(1);
-
+//suppose to check is when somethig is removed if the state is still valid i.e seen-6!!!!!!!!!!!!!!!!!!!!!!!!!!
 	  	int i = 0;
 		int end = 0;
 		ArrayList<String> tempState = state;
