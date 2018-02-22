@@ -6,6 +6,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import javax.print.DocFlavor.STRING;
+
 import java.util.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -86,6 +89,8 @@ public class Main {
   
   public boolean install(String p, ArrayList<String> commands, ArrayList<String> posError, List<Package> repo, List<String> initial, ArrayList<String> blacklist, ArrayList<String> conflicts, boolean wasOption, ArrayList<String> pending) {
 
+	
+		
 	  String v = "";
 	  String type = "";
 	  if (p.contains(">=")) {
@@ -118,6 +123,7 @@ public class Main {
 			Package thePackage = repo.get(i);
 			if (thePackage.getName().equals(p)){
 				if (doesConflict(p, thePackage.getVersion(), blacklist, conflicts) ) {
+				
 						end = -1;
 					
 				} else {
@@ -153,21 +159,15 @@ public class Main {
 									initial.remove(remove.substring(1));
 								}
 							}
-//							ArrayList<String> maybeUninstall = checkInitial(state, conflicts);
-//							if (maybeUninstall.size() == 1) {
-//								if (canUninstall(maybeUninstall.get(0), repo)) {
-//								commands.add(maybeUninstall.get(0));
-//								initial.remove(maybeUninstall.get(0).substring(1));
-//								}
-//							} else {
-//								for (String remove : maybeUninstall) {
-//									if (canUninstall(remove, repo)) {
-//									commands.add(remove);
-//									initial.remove(remove.substring(1));
-//									}
-//								}
-//							}
-							
+							 ArrayList<String> maybeUninstall = checkInitial(state, conflicts);
+								
+								for (String remove : maybeUninstall) {
+									if (canUninstall(remove, repo)) {
+									commands.add("-" + remove.substring(1));
+									initial.remove(remove.substring(1));
+									}
+								}
+						
 							boolean noErrors = true;
 							int j = 0;
 							boolean toContinue = true;
@@ -207,7 +207,12 @@ public class Main {
 								end = 3;
 								return true;
 							} else {
+								
+								
+								
 								end = 2;
+								
+								conflicts.removeAll(thePackage.getConflicts());
 								return false;
 									
 							}
@@ -246,20 +251,15 @@ public class Main {
 									initial.remove(remove.substring(1));
 								}
 							}
-//							ArrayList<String> maybeUninstall = checkInitial(state, conflicts);
-//							if (maybeUninstall.size() == 1) {
-//								if (canUninstall(maybeUninstall.get(0), repo)) {
-//								commands.add(maybeUninstall.get(0));
-//								initial.remove(maybeUninstall.get(0).substring(1));
-//								}
-//							} else {
-//								for (String remove : maybeUninstall) {
-//									if (canUninstall(remove, repo)) {
-//									commands.add(remove);
-//									initial.remove(remove.substring(1));
-//									}
-//								}
-//							}
+							
+							 ArrayList<String> maybeUninstall = checkInitial(state, conflicts);
+								
+								for (String remove : maybeUninstall) {
+									if (canUninstall(remove, repo)) {
+									commands.add("-" + remove.substring(1));
+									initial.remove(remove.substring(1));
+									}
+								}
 							boolean noErrors = true;
 							int j = 0;
 							boolean toContinue = true;
@@ -297,7 +297,9 @@ public class Main {
 								end = 3;
 								return true;
 							} else {
+								
 								end = 2;
+								conflicts.removeAll(thePackage.getConflicts());
 								return false;
 							}
 						} 
@@ -333,20 +335,14 @@ public class Main {
 											initial.remove(remove.substring(1));
 										}
 									}
-//									ArrayList<String> maybeUninstall = checkInitial(state, conflicts);
-//									if (maybeUninstall.size() == 1) {
-//										if (canUninstall(maybeUninstall.get(0), repo)) {
-//										commands.add(maybeUninstall.get(0));
-//										initial.remove(maybeUninstall.get(0).substring(1));
-//										}
-//									} else {
-//										for (String remove : maybeUninstall) {
-//											if (canUninstall(remove, repo)) {
-//											commands.add(remove);
-//											initial.remove(remove.substring(1));
-//											}
-//										}
-//									}
+									 ArrayList<String> maybeUninstall = checkInitial(state, conflicts);
+										
+										for (String remove : maybeUninstall) {
+											if (canUninstall(remove, repo)) {
+											commands.add("-" + remove.substring(1));
+											initial.remove(remove.substring(1));
+											}
+										}
 									boolean noErrors = true;
 									int j = 0;
 									boolean toContinue = true;
@@ -384,7 +380,9 @@ public class Main {
 										end = 3;
 										return true;
 									} else {
+										 
 										end = 2;
+										conflicts.removeAll(thePackage.getConflicts());
 										return false;
 									}
 								} 
@@ -392,15 +390,18 @@ public class Main {
 								end = 2;
 							}
 						}
+					
 				}
 			} else if ( end == 1 ) {
 				end = 3;
 			}
 			i++;
 		}
+		
 		if (end == 3 || end ==1) {
 			return true;
 		} else {
+			
 			blacklist = new ArrayList<String>();
 			return false;
 		}
@@ -654,9 +655,9 @@ public class Main {
 
 	  	int i = 0;
 		int end = 0;
-		ArrayList<String> tempState = new ArrayList<String>();
+		ArrayList<String> tempState = state;
 		tempState.remove(p);
-		for (String s : state) {
+		for (String s : tempState) {
 			while (i < repo.size() && end < 3) {
 				Package thePackage = repo.get(i);
 				if (thePackage.getName().equals(s.substring(0, s.indexOf('='))) && thePackage.getVersion().equals(s.substring(s.indexOf('=') + 1))) {
