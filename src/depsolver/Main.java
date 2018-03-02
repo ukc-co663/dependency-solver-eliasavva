@@ -48,9 +48,36 @@ public class Main {
     
    Main main = new Main(repo, initial, constraints, args);
     
+  }   
+
+  
+  public List<Package> sortRepo (List<Package> repo) {
+	 int[] sizes = new int[repo.size()];
+	  for (int i = 0;i< repo.size();i++) {
+		  sizes[i] = repo.get(i).getSize();
+		 
+	  }
+	  
+	  Arrays.sort(sizes);
+	  
+	  ArrayList<Package> newRepo = new ArrayList<Package>();
+	  for (int j = 0;j< sizes.length;j++) {
+		  int l = 0;
+		  boolean end = false;
+		  while (!end && l < repo.size()) {
+			  if (sizes[j] == repo.get(l).getSize()) {
+				  newRepo.add(repo.get(l));
+				  repo.remove(repo.get(l));
+				  end = true;
+			  }
+			  l++;
+		  }
+	  }
+	  return newRepo;
   }
   
   public Main(List<Package> repo, List<String> initial,List<String> constraints, String[] args)  throws IOException  {
+	  repo = sortRepo(repo);
 	  ArrayList<String> commands = new ArrayList<String>();
 	    ArrayList<String> posError= new ArrayList<String>();
 	    ArrayList<String> blacklist= new ArrayList<String>();
